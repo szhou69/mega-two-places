@@ -1,0 +1,19 @@
+name: worker2 (job 2, voice-to-memo)
+on: workflow_dispatch
+permissions: { contents: read }
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Run worker 2
+        working-directory: worker2
+        env:
+          JOB2_URL: ${{ secrets.JOB2_URL }}
+          CLIP_URL: https://hq.mega.dev/media/two-places/dispatch-3-35f47fcf.mp3
+        run: node run.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: worker2-out, path: worker2/out/, retention-days: 1 }

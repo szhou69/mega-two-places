@@ -1,0 +1,7 @@
+log/
+dl/
+worker1/
+lib/
+*.secret.json
+worker2/out/
+*.secret.*
