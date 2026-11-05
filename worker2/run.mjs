@@ -12,7 +12,7 @@ for (const t of tools) console.log("tool", t.name, JSON.stringify(t.inputSchema.
 const step = p => p.step ?? p.stepToken;
 // Segment offsets: accept seconds (number or numeric string), "m:ss"/"h:mm:ss", or ms fields.
 const secs = seg => {
-  for (const k of ["start", "startSec", "start_s", "startSeconds", "from", "offset", "t", "begin"]) {
+  for (const k of ["at", "start", "startSec", "start_s", "startSeconds", "from", "offset", "t", "begin"]) {
     const v = seg[k]; if (v == null) continue;
     if (typeof v === "number") return v;
     if (/^\d+(\.\d+)?$/.test(v)) return Number(v);
