@@ -30,12 +30,14 @@ console.log("segment keys:", JSON.stringify(Object.keys(segs[0] ?? {})), "first:
 let st = step(p);
 console.log("segments:"); for (const s of segs) console.log(`  [${mmss(secs(s))}] ${s.text}`);
 
-// 2. notes: one per finding (fault, freeze/stall, hold, reset), every time it happens.
-const FINDING = /\b(fault|faulted|froze|frozen|freez\w*|stall\w*|hung|hang\w*|hold|held|reset\w*|reboot\w*|restart\w*)\b/i;
+// 2. notes: one per finding — anything that happened on a line (fault, freeze/stall, hold, reset,
+// a check after a fault report), every time it happens. Talk with no line event is skipped.
+const LINE = /\btram (one|two|three|four|five|six|seven|eight|nine|ten|\d+)\b/i;
+const FINDING_WORD = /\b(fault|faulted|froze|frozen|freez\w*|stall\w*|hung|hang\w*|hold|held|reset\w*|reboot\w*|restart\w*)\b/i;
 const notes = [];
 for (const s of segs) {
   // each segment is one entry on the desk's log; keep its spoken time as said
-  if (FINDING.test(s.text)) notes.push(`${s.text.trim().replace(/[.]$/, "")} @${mmss(secs(s))}`);
+  if (LINE.test(s.text) || FINDING_WORD.test(s.text)) notes.push(`${s.text.trim().replace(/[.]$/, "")} @${mmss(secs(s))}`);
   else console.log("not a finding:", s.text);
 }
 for (const n of notes) { p = payload(await m.call("memo_write", { text: n, step: st })); st = step(p) ?? st; }
@@ -48,7 +50,7 @@ console.log("notes:"); for (const n of notes) console.log("  " + n);
 
 // 4. submit
 p = payload(await m.call("submit", { result: notes.join("\n"), skillVersion: "1", step: st }));
-console.log("submit status:", p.status, p.message ?? "");
+console.log("submit reply:", JSON.stringify({ ...p, receipt: p.receipt ? "(masked)" : undefined }));
 if (p.receipt) console.log(`::add-mask::${p.receipt}`);
 fs.writeFileSync("out/result.json", JSON.stringify({ segments: segs, notes, submit: p }, null, 1));
 if (p.status !== "accepted") process.exitCode = 1;
